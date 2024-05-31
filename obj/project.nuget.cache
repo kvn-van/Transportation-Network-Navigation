@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "7GMkppgn0gTAksuJE6QQCYkxBi3Y/M7RmCGh1suUDSx9n3GMww2WgACF/ymC7OZEkRdGS/dg7qhBPZf7LWrxow==",
+  "success": true,
+  "projectFilePath": "/home/kvn/Google Drive/University/CAB301/Assignment3 - Code/assignment3B.csproj",
+  "expectedPackageFiles": [
+    "/home/kvn/.nuget/packages/microsoft.netcore.app.host.linux-x64/7.0.19/microsoft.netcore.app.host.linux-x64.7.0.19.nupkg.sha512"
+  ],
+  "logs": []
+}
