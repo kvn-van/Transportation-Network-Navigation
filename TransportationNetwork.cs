@@ -61,22 +61,19 @@ public partial class TransportationNetwork
             intersections = intersectionSet.ToArray();
             Array.Sort(intersections); // Optional: sort intersections for consistency
     
-            // Initialize distance matrix
+            // Initialise distance matrix
             var n = intersections.Length;
             distances = new int[n, n];
     
-            // Initialize distances to a large number (assuming no negative distances)
-            for (int i = 0; i < n; i++)
-            {
-                for (int j = 0; j < n; j++)
-                {
+            // Initialise distances to a large number (assuming no negative distances)
+            for (int i = 0; i < n; i++){
+                for (int j = 0; j < n; j++){
                     distances[i, j] = i == j ? 0 : int.MaxValue;
                 }
             }
     
             // Fill distance matrix with the edges
-            foreach (var edge in edges)
-            {
+            foreach (var edge in edges){
                 var fromIndex = Array.IndexOf(intersections, edge.Item1);
                 var toIndex = Array.IndexOf(intersections, edge.Item2);
                 distances[fromIndex, toIndex] = edge.Item3;
@@ -84,15 +81,12 @@ public partial class TransportationNetwork
     
             return true;
         }
-        catch (Exception)
-        {
+        catch (Exception){
             intersections = null;
             distances = null;
             return false;
         }
     }
-
-
 
 
     //Display the transportation network plan with intersections and distances between intersections
@@ -135,14 +129,14 @@ public partial class TransportationNetwork
         bool[] visited = new bool[n];
         Stack<int> stack = new Stack<int>();
 
-        // Step 1: Perform DFS to fill stack with vertices in the order of their finishing times
+        // Perform Depth First Search to fill stack with vertices in the order of their finishing times
         for (int i = 0; i < n; i++){
             if (!visited[i]){
                 DFS(i, visited, stack);
             }
         }
 
-        // Step 2: Reverse the graph
+        // Reverse the graph
         int[,] reversedDistances = new int[n, n];
         for (int i = 0; i < n; i++){
             for (int j = 0; j < n; j++){
@@ -150,7 +144,7 @@ public partial class TransportationNetwork
             }
         }
 
-        // Step 3: Perform DFS on the reversed graph in the order of decreasing finishing times
+        // Perform DFS on the reversed graph in the order of decreasing finishing times
         visited = new bool[n];
         int stronglyConnectedCount = 0;
 
@@ -193,14 +187,127 @@ public partial class TransportationNetwork
     
     //Find the shortest path between a pair of intersections
     //Precondition: transportation network plan data have been read into the system
-    //Postcondition: return the shorest distance between two different intersections; return 0 if there is no path from startVerte to endVertex; returns -1 if startVertex or endVertex does not exists. This transportation network remains unchanged.
-
+    //Postcondition: return the shortest distance between two different intersections; return 0 if there is no path from startVerte to endVertex; returns -1 if startVertex or endVertex does not exists. This transportation network remains unchanged.
     public int FindShortestDistance(string startVertex, string endVertex)
     {
-        //To be completed by students
-        return 0; //to be removed
-
+    if (intersections == null || distances == null)
+    {
+        return -1;
     }
+
+    int startIndex = Array.IndexOf(intersections, startVertex);
+    int endIndex = Array.IndexOf(intersections, endVertex);
+
+    if (startIndex == -1 || endIndex == -1)
+    {
+        return -1; // Start or end vertex does not exist
+    }
+
+    int n = intersections.Length;
+    int[] distancesFromStart = new int[n];
+    bool[] visited = new bool[n];
+
+    for (int i = 0; i < n; i++)
+    {
+        distancesFromStart[i] = int.MaxValue;
+        visited[i] = false;
+    }
+
+    distancesFromStart[startIndex] = 0;
+    PriorityQueue<int, int> priorityQueue = new PriorityQueue<int, int>();
+    priorityQueue.Enqueue(startIndex, 0);
+
+    while (priorityQueue.Count > 0)
+    {
+        int current = priorityQueue.Dequeue();
+
+        if (visited[current])
+        {
+            continue;
+        }
+
+        visited[current] = true;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (distances[current, i] != int.MaxValue && !visited[i])
+            {
+                int newDist = distancesFromStart[current] + distances[current, i];
+
+                if (newDist < distancesFromStart[i])
+                {
+                    distancesFromStart[i] = newDist;
+                    priorityQueue.Enqueue(i, newDist);
+                }
+            }
+        }
+    }
+
+    return distancesFromStart[endIndex] == int.MaxValue ? 0 : distancesFromStart[endIndex];
+}
+
+// Helper class for priority queue
+public class PriorityQueue<TElement, TPriority> where TPriority : IComparable<TPriority>
+{
+    private List<(TElement Element, TPriority Priority)> elements = new List<(TElement, TPriority)>();
+
+    public int Count => elements.Count;
+
+    public void Enqueue(TElement element, TPriority priority)
+    {
+        elements.Add((element, priority));
+        int childIndex = elements.Count - 1;
+
+        while (childIndex > 0)
+        {
+            int parentIndex = (childIndex - 1) / 2;
+
+            if (elements[childIndex].Priority.CompareTo(elements[parentIndex].Priority) >= 0)
+            {
+                break;
+            }
+
+            var tmp = elements[childIndex];
+            elements[childIndex] = elements[parentIndex];
+            elements[parentIndex] = tmp;
+
+            childIndex = parentIndex;
+        }
+    }
+
+    public TElement Dequeue()
+    {
+        int lastIndex = elements.Count - 1;
+        var frontItem = elements[0];
+        elements[0] = elements[lastIndex];
+        elements.RemoveAt(lastIndex);
+
+        lastIndex--;
+
+        int parentIndex = 0;
+
+        while (true)
+        {
+            int leftChildIndex = parentIndex * 2 + 1;
+            if (leftChildIndex > lastIndex) break;
+
+            int rightChildIndex = leftChildIndex + 1;
+            int bestChildIndex = (rightChildIndex > lastIndex || elements[leftChildIndex].Priority.CompareTo(elements[rightChildIndex].Priority) < 0)
+                ? leftChildIndex
+                : rightChildIndex;
+
+            if (elements[parentIndex].Priority.CompareTo(elements[bestChildIndex].Priority) <= 0) break;
+
+            var tmp = elements[parentIndex];
+            elements[parentIndex] = elements[bestChildIndex];
+            elements[bestChildIndex] = tmp;
+
+            parentIndex = bestChildIndex;
+        }
+
+        return frontItem.Element;
+    }
+}
 
 
     //Find the shortest path between all pairs of intersections
